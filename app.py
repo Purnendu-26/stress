@@ -1,19 +1,6 @@
 from flask import Flask, render_template, request, jsonify
-import joblib
-import numpy as np
-import os
 
 app = Flask(__name__)
-
-# Get absolute paths for model files
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(BASE_DIR, 'models', 'stress_model.pkl')
-scaler_path = os.path.join(BASE_DIR, 'models', 'scaler.pkl')
-
-model = joblib.load(model_path)
-scaler = joblib.load(scaler_path)
-
-stress_zones = ['Low', 'Moderate', 'High']
 
 zone_explanations = {
     'Low': "You're experiencing low stress levels. Keep up your healthy habits!",
@@ -53,6 +40,14 @@ daily_habits = [
     "Express gratitude for three things daily"
 ]
 
+def get_stress_zone(total_score):
+    if total_score <= 13:
+        return 'Low'
+    elif total_score <= 26:
+        return 'Moderate'
+    else:
+        return 'High'
+
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -61,15 +56,9 @@ def home():
 def predict():
     try:
         data = request.get_json()
-        answers = [
-            int(data[f'q{i}']) for i in range(1, 11)]
-            
+        answers = [int(data[f'q{i}']) for i in range(1, 11)]
         total_score = sum(answers)
-        
-        features = np.array(answers).reshape(1, -1)
-        features_scaled = scaler.transform(features)
-        prediction = model.predict(features_scaled)[0]
-        stress_zone = stress_zones[prediction]
+        stress_zone = get_stress_zone(total_score)
         
         return jsonify({
             'score': total_score,

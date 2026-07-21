@@ -1,11 +1,17 @@
 from flask import Flask, render_template, request, jsonify
 import joblib
 import numpy as np
+import os
 
 app = Flask(__name__)
 
-model = joblib.load('models/stress_model.pkl')
-scaler = joblib.load('models/scaler.pkl')
+# Get absolute paths for model files
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(BASE_DIR, 'models', 'stress_model.pkl')
+scaler_path = os.path.join(BASE_DIR, 'models', 'scaler.pkl')
+
+model = joblib.load(model_path)
+scaler = joblib.load(scaler_path)
 
 stress_zones = ['Low', 'Moderate', 'High']
 
